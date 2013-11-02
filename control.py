@@ -9,7 +9,7 @@ define("command", default="gphoto2", help="Command to execute for gphoto", type=
 
 class ShutterSpeedController(object):
 
-    shutter_speeds = {}
+    shutter_speeds = []
 
     def __init__(self, config):
         self.init_shutter_speeds(config["shutter"])
@@ -17,10 +17,11 @@ class ShutterSpeedController(object):
     def init_shutter_speeds(self, file):
         logging.info("Opening file <%s>", file)
         with open(file, "r") as f:
-            line_arr = f.readline().split()
-            if line_arr[0] == "Choice:":
-                logging.info("Adding speed %s with index %s", line_arr[2], line_arr[1])
-                self.shutter_speeds[int(line_arr[2])] = line_arr[1]
+            for line in f:
+                line_arr = line.split()
+                if line_arr[0] == "Choice:":
+                    logging.info("Adding speed %s", line_arr[2])
+                    self.shutter_speeds.append(line_arr[2])
 
     def get_current_speed_index(self):
         p1 = Popen([options.command, "--get-config", "/main/capturesettings/shutterspeed"], stdout=PIPE)
@@ -30,7 +31,7 @@ class ShutterSpeedController(object):
         logging.info("Output : <%s>", output)
         current_value = output.split()[1]
         logging.info("Parsed current value as : <%s>", current_value)
-        res = self.shutter_speeds[current_value]
+        res = self.shutter_speeds.index(current_value)
         logging.info("Matching index is : %d", res)
         return res
 
